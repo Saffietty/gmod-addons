@@ -1,1 +1,1 @@
-# Killer Notify for TTT Gamemode
+# Killer Notify for Trouble in Terrorist Town
