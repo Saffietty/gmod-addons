@@ -315,13 +315,13 @@ hook.Add("TTTSettingsTabs","KillerNotify",function(dtabs)
 	DForm:SetName("Настройки уведомлений после смерти");
 	local Enable=DForm:CheckBox("Отображать уведомление с информацией о смерти по ценру экрана?","ttt_killer_notify_enable");
 	if SpecDM then
-		local DM_Enable=DForm:CheckBox("А для Deathmatch?","ttt_killer_notify_dm_enable");
+		local DM_Enable=DForm:CheckBox("А во время Deathmatch?","ttt_killer_notify_dm_enable");
 		DM_Enable:SetTooltip("То же, что и выше, но для Deathmatch");
 	end;
 
 	local Enable=DForm:CheckBox("Выводить информацию о смерти в чат?","ttt_killer_notify_chat_print");
 	if SpecDM then
-		local DM_Enable=DForm:CheckBox("А для Deathmatch?","ttt_killer_notify_dm_chat_print");
+		local DM_Enable=DForm:CheckBox("А во время Deathmatch?","ttt_killer_notify_dm_chat_print");
 		DM_Enable:SetTooltip("То же, что и выше, но для Deathmatch");
 	end;
 
