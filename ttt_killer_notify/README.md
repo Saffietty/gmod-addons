@@ -1,2 +1,3 @@
-# Killer Notify for Trouble in Terrorist Town
+# Killer Notify
+Created for Trouble in Terrorist Town Gamemode.
 Only on russian.
