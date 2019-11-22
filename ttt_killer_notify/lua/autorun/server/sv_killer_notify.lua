@@ -81,6 +81,5 @@ hook.Add("DoPlayerDeath","KillerNotify",function(victim,attacker,dmginfo)
 		net.Start("KN_SendToVictim");
 		net.WriteString(util.TableToJSON(SendTable));
 		net.Send(victim);
-		PrintTable(SendTable);
 	end;
 end);

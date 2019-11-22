@@ -313,34 +313,33 @@ hook.Add("TTTSettingsTabs","KillerNotify",function(dtabs)
 	DForm:Dock(FILL);
 
 	DForm:SetName("Настройки уведомлений после смерти");
-	local Enable=DForm:CheckBox("Включено?","ttt_killer_notify_enable");
-	Enable:SetTooltip("Отображать панель с информацией о смерти?");
+	local Enable=DForm:CheckBox("Отображать уведомление с информацией о смерти по ценру экрана?","ttt_killer_notify_enable");
 	if SpecDM then
-		local DM_Enable=DForm:CheckBox("Включено для Deathmatch?","ttt_killer_notify_dm_enable");
+		local DM_Enable=DForm:CheckBox("А для Deathmatch?","ttt_killer_notify_dm_enable");
 		DM_Enable:SetTooltip("То же, что и выше, но для Deathmatch");
 	end;
 
-	local Enable=DForm:CheckBox("Выводить информацию в чат?","ttt_killer_notify_chat_print");
-	Enable:SetTooltip("Выводить информацию о смерти в чат?");
+	local Enable=DForm:CheckBox("Выводить информацию о смерти в чат?","ttt_killer_notify_chat_print");
 	if SpecDM then
-		local DM_Enable=DForm:CheckBox("Выводить информацию в чат для Deathmatch?","ttt_killer_notify_dm_chat_print");
+		local DM_Enable=DForm:CheckBox("А для Deathmatch?","ttt_killer_notify_dm_chat_print");
 		DM_Enable:SetTooltip("То же, что и выше, но для Deathmatch");
 	end;
 
 	if SpecDM then
-		DM_Delay=DForm:NumSlider("Время до закрытия панели в Deathmatch","ttt_killer_notify_dm_delay",1,SpecDM.RespawnTime,0);
-		DM_Delay:SetTooltip("В секундах.");
+		DM_Delay=DForm:NumSlider("Время до закрытия уведомления во время Deathmatch (в секундах)","ttt_killer_notify_dm_delay",1,SpecDM.RespawnTime,0);
+		DM_Delay.Label:SetWrap(true);
 	end;
 
+	--Просьба не удалять
 	local Creator=vgui.Create("DLabelURL",DForm);
 	Creator:SetText("Профиль создателя аддона в Steam");
 	Creator:SetURL("https://steamcommunity.com/profiles/76561198105073033");
 	DForm:AddItem(Creator);
-
-	local Creator=vgui.Create("DLabelURL",DForm);
-	Creator:SetText("Ссылка на GitHub аддона");
-	Creator:SetURL("https://steamcommunity.com/profiles/76561198105073033");
-	DForm:AddItem(Creator);
+	--И это тоже
+	local GitHub=vgui.Create("DLabelURL",DForm);
+	GitHub:SetText("Ссылка на аддон в GitHub");
+	GitHub:SetURL("https://github.com/Saffietty/gmod-addons/tree/master/ttt_killer_notify");
+	DForm:AddItem(GitHub);
 
 	DScroll:AddItem(DForm);
 	dtabs:AddSheet("Killer Notify",DScroll,"icon16/tag_red.png",false,false,"Настройки для Killer Notify");
