@@ -117,12 +117,15 @@ local DrawPanel=function(Table)
 	end;
 end;
 
-local CVar_DM_Delay=CreateClientConVar("ttt_killer_notify_dm_delay",2);
-local DM_Delay=CVar_DM_Delay:GetInt();
-cvars.RemoveChangeCallback("ttt_killer_notify_dm_delay","ttt_killer_notify_dm_delay");
-cvars.AddChangeCallback("ttt_killer_notify_dm_delay",function()
-	DM_Delay=CVar_DM_Delay:GetInt();
-end,"ttt_killer_notify_dm_delay");
+local DM_Delay;
+if SpecDM then
+	local CVar_DM_Delay=CreateClientConVar("ttt_killer_notify_dm_delay","2",true,false,"",1,SpecDM.RespawnTime);
+	DM_Delay=tonumber(CVar_DM_Delay:GetString());
+	cvars.RemoveChangeCallback("ttt_killer_notify_dm_delay","ttt_killer_notify_dm_delay");
+	cvars.AddChangeCallback("ttt_killer_notify_dm_delay",function(_,_,value)
+		DM_Delay=tonumber(CVar_DM_Delay:GetString());
+	end,"ttt_killer_notify_dm_delay");
+end;
 
 local DrawPanel_DM=function(Table)
 	local SizeX;
@@ -186,6 +189,7 @@ local DrawPanel_DM=function(Table)
 		LastHit:SetTooltip("Вы убиты выстрелом в голову");
 	end;
 
+	if DM_Delay==nil||type(DM_Delay)!="number" then DM_Delay=2 end;
 	timer.Simple(DM_Delay,function()
 		if Base:IsValid() then
 			Base:Close();
@@ -193,33 +197,39 @@ local DrawPanel_DM=function(Table)
 	end);
 end;
 
-local CVar_Enable=CreateClientConVar("ttt_killer_notify_enable",1);
+local CVar_Enable=CreateClientConVar("ttt_killer_notify_enable","1",true,false,"",0,1);
 local Enable=CVar_Enable:GetBool();
 cvars.RemoveChangeCallback("ttt_killer_notify_enable","ttt_killer_notify_enable");
 cvars.AddChangeCallback("ttt_killer_notify_enable",function()
 	Enable=CVar_Enable:GetBool();
 end,"ttt_killer_notify_enable");
 
-local CVar_DM_Enable=CreateClientConVar("ttt_killer_notify_dm_enable",1);
-local DM_Enable=CVar_DM_Enable:GetBool();
-cvars.RemoveChangeCallback("ttt_killer_notify_dm_enable","ttt_killer_notify_dm_enable");
-cvars.AddChangeCallback("ttt_killer_notify_dm_enable",function()
+local DM_Enable;
+if SpecDM then
+	local CVar_DM_Enable=CreateClientConVar("ttt_killer_notify_dm_enable","1",true,false,"",0,1);
 	DM_Enable=CVar_DM_Enable:GetBool();
-end,"ttt_killer_notify_dm_enable");
+	cvars.RemoveChangeCallback("ttt_killer_notify_dm_enable","ttt_killer_notify_dm_enable");
+	cvars.AddChangeCallback("ttt_killer_notify_dm_enable",function()
+		DM_Enable=CVar_DM_Enable:GetBool();
+	end,"ttt_killer_notify_dm_enable");
+end;
 
-local CVar_ChatPrint=CreateClientConVar("ttt_killer_notify_chat_print",0);
+local CVar_ChatPrint=CreateClientConVar("ttt_killer_notify_chat_print","0",true,false,"",0,1);
 local ChatPrint=CVar_ChatPrint:GetBool();
 cvars.RemoveChangeCallback("ttt_killer_notify_chat_print","ttt_killer_notify_chat_print");
 cvars.AddChangeCallback("ttt_killer_notify_chat_print",function()
 	ChatPrint=CVar_ChatPrint:GetBool();
 end,"ttt_killer_notify_chat_print");
 
-local CVar_DM_ChatPrint=CreateClientConVar("ttt_killer_notify_dm_chat_print",0);
-local DM_ChatPrint=CVar_DM_ChatPrint:GetBool();
-cvars.RemoveChangeCallback("ttt_killer_notify_dm_chat_print","ttt_killer_notify_dm_chat_print");
-cvars.AddChangeCallback("ttt_killer_notify_dm_chat_print",function()
+local DM_ChatPrint;
+if SpecDM then
+	local CVar_DM_ChatPrint=CreateClientConVar("ttt_killer_notify_dm_chat_print","0",true,false,"",0,1);
 	DM_ChatPrint=CVar_DM_ChatPrint:GetBool();
-end,"ttt_killer_notify_dm_chat_print");
+	cvars.RemoveChangeCallback("ttt_killer_notify_dm_chat_print","ttt_killer_notify_dm_chat_print");
+	cvars.AddChangeCallback("ttt_killer_notify_dm_chat_print",function()
+		DM_ChatPrint=CVar_DM_ChatPrint:GetBool();
+	end,"ttt_killer_notify_dm_chat_print");
+end;
 
 local PrintInChat=function(Table)
 	local headshot="";
