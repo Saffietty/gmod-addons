@@ -1,84 +1,116 @@
-util.AddNetworkString("KN_SendToVictim");
 
-local DNA_Table={};
-local CheckTable=function(ply)
-	if #DNA_Table==0 then
-		return 0;
-	end;
-	for _,sid in pairs(DNA_Table) do
-		if ply:SteamID64()==sid[1] then
-			return 1;
-		end;
-	end;
-	return 0;
-end;
+util.AddNetworkString("killer_notify");
 
-local GetFromCorpse=function(ply)
-	if #DNA_Table==0 then
-		return "";
-	end;
-	for _,sid in pairs(DNA_Table) do
-		if ply:SteamID64()==sid[1] then
-			if sid[2]==nil&&sid[3]==nil then
-				return "",0;
-			elseif sid[2]!=nil&&sid[3]==nil then
-				return sid[2];
-			else
-				return sid[2],sid[3];
+local AttackerHasVictimDNA=function(killer,victim)
+	if killer:HasWeapon("weapon_ttt_wtester") then
+		local wep=killer:GetWeapon("weapon_ttt_wtester");
+		if wep.ItemSamples&&0<#wep.ItemSamples then
+			for id=1,#wep.ItemSamples do
+				if wep.ItemSamples[id]["ply"]==victim then
+					local source=wep["ItemSamples"][id]["source"];
+					if source&&IsValid(source) then
+						if source:GetClass()=="prop_ragdoll" then 
+							local role=-1;
+							local steamid64=-1;
+							source=source["killer_sample"]["victim"];
+							if IsValid(source) then
+								steamid64=source:SteamID64();
+								role=source:GetRole();
+								source=source:Nick();
+							else
+								steamid64=nil;
+								role=nil;
+								source=nil;
+							end;
+							return 1,source,role,steamid64;
+						else
+							return 2,source:GetClass(),nil,nil;
+						end;
+					end;
+				end;
 			end;
 		end;
 	end;
-	return "";
+	return 0,nil,nil,nil;
 end;
 
-hook.Add("TTTPrepareRound","KillerNotify",function()
-	DNA_Table={};
-end);
-hook.Add("TTTFoundDNA","KillerNotify",function(ply,dna_owner,ent)
-	if !IsValid(dna_owner)||ply==dna_owner||CheckTable(dna_owner)==1 then return end;
-	if IsValid(ent)&&ent:GetClass()=="prop_ragdoll" then
-		table.insert(DNA_Table,{dna_owner:SteamID64(),CORPSE.GetPlayerNick(ent),ent.was_role});
-	else
-		table.insert(DNA_Table,{dna_owner:SteamID64(),ent:GetClass()});
+local GetNiceWeaponClass=function(dmginfo,killer)
+	local SendTable={};
+
+	if !IsValid(dmginfo:GetInflictor()) then
+		return "None";
 	end;
-end);
-hook.Add("DoPlayerDeath","KillerNotify",function(victim,attacker,dmginfo)
-	if (IsValid(victim)&&IsValid(attacker))&&(victim:IsPlayer()&&attacker:IsPlayer())&&victim!=attacker then
-		local SendTable={};
-		SendTable.Nick=attacker:Nick();
-		SendTable.SteamID64=attacker:SteamID64();
-		SendTable.Role=attacker:GetRoleString();
-		SendTable.LastHit=victim:LastHitGroup();
-		local IC=dmginfo:GetInflictor():GetClass();
-		if IC=="player" then
-			SendTable.Weapon=attacker:GetActiveWeapon():GetClass();
-		elseif IC=="weapon_zm_improvised" then
-			SendTable.Weapon="weapon_zm_improvised";
-		elseif IC=="weapon_ttt_knife"||IC=="ttt_knife_proj" then
-			SendTable.Weapon="weapon_ttt_knife";
-		elseif IC=="ttt_c4"||IC=="ttt_flame" then
-			SendTable.Weapon="weapon_ttt_c4";
-		elseif IC=="ttt_firegrenade_proj"||IC=="env_fire" then
-			SendTable.Weapon="weapon_zm_molotov";
-		elseif IC=="worldspawn" then
-			SendTable.Weapon="World";
-		elseif IC=="prop_physics" then
+
+	local IC=dmginfo:GetInflictor():GetClass();--IC - класс инфликтора. Инфликтор - это обычно то, чем убивают; или то, что убивает...
+
+	if IC=="player" then
+		if dmginfo:GetDamageType()==268435464 then
+			SendTable.Weapon="weapon_ttt_flaregun";
+		else
+			local wep=killer:GetActiveWeapon();
+			if IsValid(wep) then
+				SendTable.Weapon=wep:GetClass();
+			else
+				SendTable.Weapon="None";
+			end;
+		end;
+	--Примеры интеграции аддонов на оружие
+	elseif IC=="ttt_slam_satchel"||IC=="ttt_slam_tripmine" then
+		SendTable.Weapon="weapon_ttt_slam";
+	elseif IC=="ttt_fraggrenade_proj" then
+		SendTable.Weapon="nc_ttt_gofrag";
+	elseif IC=="weapon_ttt_tflippy_hemotoxin" then
+		SendTable.Weapon="weapon_ttt_tflippy_hemotoxin";
+	--
+	elseif IC=="weapon_zm_improvised" then
+		SendTable.Weapon="weapon_zm_improvised";
+	elseif IC=="weapon_ttt_knife"||IC=="ttt_knife_proj" then
+		SendTable.Weapon="weapon_ttt_knife";
+	elseif IC=="ttt_c4"||IC=="ttt_flame" then
+		SendTable.Weapon="weapon_ttt_c4";
+	elseif IC=="ttt_firegrenade_proj"||IC=="env_fire" then
+		SendTable.Weapon="weapon_zm_molotov";
+	elseif IC=="worldspawn" then
+		SendTable.Weapon="Fall";
+	elseif IC=="prop_physics" then
+		if dmginfo:GetDamageType()==134217792 then
+			SendTable.Weapon="Barrel";
+		else
 			SendTable.Weapon="Prop";
-		else
-			SendTable.Weapon="None";
 		end;
-		if attacker:HasWeapon("weapon_ttt_wtester") then
-			SendTable.DNA=CheckTable(victim);
-			local Check1,Check2=GetFromCorpse(victim);
-			if Check2 then
-				SendTable.DNA_Nick,SendTable.DNA_Role=GetFromCorpse(victim);
-			else
-				SendTable.EntClass=GetFromCorpse(victim);
+	else
+		SendTable.Weapon="None";
+	end;
+
+	return SendTable.Weapon;
+end;
+
+hook.Add("DoPlayerDeath","killer_notify",function(victim,killer,dmginfo)
+	if IsValid(victim)&&(IsValid(killer)&&killer:IsPlayer())&&victim!=killer then
+		--[[Debug
+		for name,func in pairs(FindMetaTable("CTakeDamageInfo")) do
+			if isfunction(func)&&string.StartWith(name,"Get") then
+				if #name<17 then name=name.."\t" end;
+				print(name,func(dmginfo));
 			end;
-		else
-			SendTable.DNA=0;
 		end;
-		net.Start("KN_SendToVictim");
+		--]]
+		local SendTable={};
+		SendTable.Nick=killer:Nick();
+		SendTable.SteamID64=killer:SteamID64();
+		SendTable.Role=killer:GetRole();
+		SendTable.LastHit=victim:LastHitGroup();
+		SendTable.Weapon=GetNiceWeaponClass(dmginfo,killer);
+		SendTable.DNA,SendTable.DNA_Nick,SendTable.DNA_Role,SendTable.DNA_SteamID64=AttackerHasVictimDNA(killer,victim);
+		if SendTable.DNA==2 then
+			SendTable.DNA=1;
+			SendTable.EntClass=SendTable.DNA_Nick;
+			SendTable.DNA_Nick=nil;
+		end;
+
+		//PrintTable(SendTable);
+
+		net.Start("killer_notify");
 		net.WriteString(util.TableToJSON(SendTable));
 		net.Send(victim);
 	end;
